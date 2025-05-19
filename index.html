@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Penjualan Harian</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f5f5f5; }
+    h1 { text-align: center; }
+    .form-section, .buttons { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 0 8px rgba(0,0,0,0.1); }
+    .form-row { display: flex; flex-wrap: wrap; gap: 10px; }
+    select, input, button { padding: 8px; border-radius: 5px; border: 1px solid #ccc; }
+    button { background: #007bff; color: #fff; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { border: 1px solid #ddd; text-align: center; padding: 6px; }
+    th { background: #ffc107; }
+    #totalSemua { font-weight: bold; margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+<h1>Data Penjualan Harian</h1>
+
+<div class="form-section">
+  <div class="form-row">
+    <select id="hari"><option value="">Hari</option><option>Senin</option><option>Selasa</option><option>Rabu</option><option>Kamis</option><option>Jumat</option><option>Sabtu</option><option>Minggu</option></select>
+    <select id="telurAyam"><option value="">Telur Ayam</option><option>0.5</option><option>1</option><option>1.5</option><option>2</option><option>2.5</option><option>3</option></select>
+    <select id="telurPuyuh"><option value="">Telur Puyuh</option><option>0.5</option><option>1</option><option>1.5</option><option>2</option><option>2.5</option><option>3</option></select>
+    <select id="tepungAci"><option value="">Tepung Aci</option><option>0.5</option><option>1</option><option>1.5</option><option>2</option><option>2.5</option><option>3</option></select>
+    <select id="balado"><option value="">Balado</option><option>1</option><option>2</option><option>3</option><option>4</option></select>
+    <select id="jagung"><option value="">Jagung</option><option>1</option><option>2</option><option>3</option><option>4</option></select>
+    <select id="margarin"><option value="">Margarin</option><option>1</option><option>2</option><option>3</option><option>4</option></select>
+    <select id="tusuk"><option value="">Tusuk Sate</option><option>1</option><option>2</option><option>3</option><option>4</option></select>
+    <select id="plastik"><option value="">Plastik</option><option>1</option><option>2</option><option>3</option><option>4</option></select>
+    <select id="bensin"><option value="">Bensin (L)</option><option>0.5</option><option>1</option><option>1.5</option><option>2</option><option>2.5</option><option>3</option></select>
+    <select id="gas"><option value="">Gas</option><option>1</option><option>2</option><option>3</option><option>4</option></select>
+    <input type="number" id="omset" placeholder="Omset (Rp)">
+    <button onclick="submitData()">Tambah</button>
+  </div>
+</div>
+
+<div class="buttons">
+  <button onclick="saveToLocalStorage()">Simpan Data</button>
+  <button onclick="exportToExcel()">Ekspor Excel</button>
+  <button onclick="clearData()">Hapus Semua</button>
+  <input type="file" id="importExcel" accept=".xlsx" onchange="importFromExcel()">
+</div>
+
+<h2>Rincian Bahan</h2>
+<table id="bahanTable">
+  <thead>
+    <tr><th>No</th><th>Hari</th><th>Telur Ayam</th><th>Telur Puyuh</th><th>Tepung Aci</th><th>Balado</th><th>Jagung</th><th>Margarin</th><th>Tusuk</th><th>Plastik</th><th>Bensin</th><th>Gas</th><th>Modal</th><th>Hapus</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<h2>Keuangan</h2>
+<table id="keuanganTable">
+  <thead>
+    <tr><th>No</th><th>Omset (Rp)</th><th>Modal (Rp)</th><th>Profit (Rp)</th><th>Status</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<div id="totalSemua">Total Modal: Rp 0</div>
+
+<script>
+const HARGA = {
+  telurAyam: 30000, telurPuyuh: 38000, tepungAci: 11000, balado: 5000,
+  jagung: 5000, margarin: 6000, tusuk: 12000, plastik: 7000, bensin: 12000, gas: 22000
+};
+
+function hitungTotal(data) {
+  return (
+    (parseFloat(data.telurAyam) || 0) * HARGA.telurAyam +
+    (parseFloat(data.telurPuyuh) || 0) * HARGA.telurPuyuh +
+    (parseFloat(data.tepungAci) || 0) * HARGA.tepungAci +
+    (parseFloat(data.balado) || 0) * HARGA.balado +
+    (parseFloat(data.jagung) || 0) * HARGA.jagung +
+    (parseFloat(data.margarin) || 0) * HARGA.margarin +
+    (parseFloat(data.tusuk) || 0) * HARGA.tusuk +
+    (parseFloat(data.plastik) || 0) * HARGA.plastik +
+    (parseFloat(data.bensin) || 0) * HARGA.bensin +
+    (parseFloat(data.gas) || 0) * HARGA.gas
+  );
+}
+
+function submitData() {
+  const data = {
+    hari: document.getElementById("hari").value,
+    telurAyam: document.getElementById("telurAyam").value,
+    telurPuyuh: document.getElementById("telurPuyuh").value,
+    tepungAci: document.getElementById("tepungAci").value,
+    balado: document.getElementById("balado").value,
+    jagung: document.getElementById("jagung").value,
+    margarin: document.getElementById("margarin").value,
+    tusuk: document.getElementById("tusuk").value,
+    plastik: document.getElementById("plastik").value,
+    bensin: document.getElementById("bensin").value,
+    gas: document.getElementById("gas").value,
+    omset: parseInt(document.getElementById("omset").value)
+  };
+  if (!data.hari || isNaN(data.omset)) return alert("Isi Hari dan Omset!");
+
+  const total = hitungTotal(data);
+  const bahanBody = document.querySelector("#bahanTable tbody");
+  const keuanganBody = document.querySelector("#keuanganTable tbody");
+
+  const status = data.omset > total ? "Untung" : data.omset < total ? "Rugi" : "Impas";
+
+  bahanBody.insertRow().innerHTML = `
+    <td>${bahanBody.rows.length + 1}</td><td>${data.hari}</td><td>${data.telurAyam}</td><td>${data.telurPuyuh}</td>
+    <td>${data.tepungAci}</td><td>${data.balado}</td><td>${data.jagung}</td><td>${data.margarin}</td><td>${data.tusuk}</td>
+    <td>${data.plastik}</td><td>${data.bensin}</td><td>${data.gas}</td><td>Rp ${total.toLocaleString()}</td>
+    <td><button onclick="hapusBaris(this)">Hapus</button></td>`;
+
+  keuanganBody.insertRow().innerHTML = `
+    <td>${keuanganBody.rows.length + 1}</td>
+    <td>Rp ${data.omset.toLocaleString()}</td>
+    <td>Rp ${total.toLocaleString()}</td>
+    <td>Rp ${(data.omset - total).toLocaleString()}</td>
+    <td>${status}</td>`;
+
+  document.querySelectorAll("select").forEach(e => e.value = "");
+  document.getElementById("omset").value = "";
+  updateTotalModal();
+}
+
+function hapusBaris(btn) {
+  const idx = btn.parentElement.parentElement.rowIndex - 1;
+  document.querySelector("#bahanTable tbody").deleteRow(idx);
+  document.querySelector("#keuanganTable tbody").deleteRow(idx);
+  updateTotalModal();
+}
+
+function updateTotalModal() {
+  let total = 0;
+  document.querySelectorAll("#bahanTable tbody tr").forEach(row => {
+    total += parseInt(row.cells[12].innerText.replace(/[^\d]/g, "") || 0);
+  });
+  document.getElementById("totalSemua").innerText = "Total Modal: Rp " + total.toLocaleString();
+}
+
+function exportToExcel() {
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.table_to_sheet(document.getElementById("bahanTable")), "Bahan");
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.table_to_sheet(document.getElementById("keuanganTable")), "Keuangan");
+  XLSX.writeFile(wb, "DataPenjualan.xlsx");
+}
+
+function importFromExcel() {
+  const file = document.getElementById('importExcel').files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const wb = XLSX.read(e.target.result, { type: "binary" });
+    const data1 = XLSX.utils.sheet_to_json(wb.Sheets["Bahan"], { header: 1 }).slice(1);
+    const data2 = XLSX.utils.sheet_to_json(wb.Sheets["Keuangan"], { header: 1 }).slice(1);
+    clearData();
+    data1.forEach((row, i) => {
+      document.querySelector("#bahanTable tbody").insertRow().innerHTML =
+        `<td>${i+1}</td>${row.slice(1,13).map(val => `<td>${val}</td>`).join("")}<td><button onclick="hapusBaris(this)">Hapus</button></td>`;
+    });
+    data2.forEach((row, i) => {
+      document.querySelector("#keuanganTable tbody").insertRow().innerHTML =
+        `<td>${i+1}</td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td>${row[4]}</td>`;
+    });
+    updateTotalModal();
+  };
+  reader.readAsBinaryString(file);
+}
+
+function clearData() {
+  document.querySelector("#bahanTable tbody").innerHTML = "";
+  document.querySelector("#keuanganTable tbody").innerHTML = "";
+  updateTotalModal();
+}
+
+function saveToLocalStorage() {
+  const bahan = document.querySelector("#bahanTable tbody").innerHTML;
+  const keuangan = document.querySelector("#keuanganTable tbody").innerHTML;
+  localStorage.setItem("bahanData", bahan);
+  localStorage.setItem("keuanganData", keuangan);
+  alert("Data berhasil disimpan.");
+}
+
+window.onload = () => {
+  document.querySelector("#bahanTable tbody").innerHTML = localStorage.getItem("bahanData") || "";
+  document.querySelector("#keuanganTable tbody").innerHTML = localStorage.getItem("keuanganData") || "";
+  updateTotalModal();
+};
+</script>
+
+</body>
+</html>
