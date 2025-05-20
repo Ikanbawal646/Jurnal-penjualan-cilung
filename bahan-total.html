@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Total Bahan Digunakan</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f0f0f0; padding: 20px; }
+    h2 { text-align: center; }
+    table { width: 100%; border-collapse: collapse; background: #fff; box-shadow: 0 0 8px rgba(0,0,0,0.1); margin-top: 20px; }
+    th, td { padding: 10px; border: 1px solid #ddd; text-align: center; }
+    th { background-color: #007bff; color: white; }
+    .actions { margin-top: 20px; display: flex; justify-content: space-between; }
+    .actions button {
+      padding: 10px 20px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .actions button:hover { background: #218838; }
+    .kembali button {
+      background: #dc3545;
+    }
+    .kembali button:hover {
+      background: #c82333;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Total Penggunaan Bahan</h2>
+
+  <div class="actions">
+    <div class="kembali">
+      <a href="index.html"><button>Kembali ke Halaman Utama</button></a>
+    </div>
+    <div class="export">
+      <button onclick="exportToExcel()">Ekspor ke Excel</button>
+    </div>
+  </div>
+
+  <table id="totalTable">
+    <thead>
+      <tr>
+        <th>Bahan</th>
+        <th>Total Jumlah</th>
+      </tr>
+    </thead>
+    <tbody id="totalTableBody">
+    </tbody>
+  </table>
+
+  <script>
+    const bahanList = [
+      "Telur Ayam", "Telur Puyuh", "Tepung Aci", "Balado", "Jagung",
+      "Margarin", "Tusuk", "Plastik", "Bensin", "Gas"
+    ];
+    const kolomIndex = {
+      "Telur Ayam": 2, "Telur Puyuh": 3, "Tepung Aci": 4, "Balado": 5,
+      "Jagung": 6, "Margarin": 7, "Tusuk": 8, "Plastik": 9, "Bensin": 10, "Gas": 11
+    };
+
+    function hitungTotalBahan() {
+      const tbody = document.getElementById("totalTableBody");
+      const data = localStorage.getItem("bahanData");
+      if (!data) return tbody.innerHTML = "<tr><td colspan='2'>Belum ada data.</td></tr>";
+
+      const tempTable = document.createElement("table");
+      tempTable.innerHTML = data;
+
+      const total = {};
+      bahanList.forEach(b => total[b] = 0);
+
+      Array.from(tempTable.rows).forEach(row => {
+        bahanList.forEach(bahan => {
+          const idx = kolomIndex[bahan];
+          const val = parseFloat(row.cells[idx]?.innerText) || 0;
+          total[bahan] += val;
+        });
+      });
+
+      tbody.innerHTML = bahanList.map(bahan =>
+        `<tr><td>${bahan}</td><td>${total[bahan]}</td></tr>`
+      ).join("");
+    }
+
+    function exportToExcel() {
+      const table = document.getElementById("totalTable");
+      const wb = XLSX.utils.table_to_book(table, { sheet: "Total Bahan" });
+      XLSX.writeFile(wb, "total_bahan.xlsx");
+    }
+
+    window.onload = hitungTotalBahan;
+  </script>
+
+  <!-- CDN untuk SheetJS (XLSX) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+</body>
+</html>

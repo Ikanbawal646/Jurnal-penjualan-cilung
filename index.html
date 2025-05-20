@@ -7,7 +7,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     body { font-family: Arial; padding: 20px; background: #f5f5f5; }
-    h1 { text-align: center; }
+    h1, h2 { text-align: center; }
     .form-section, .buttons { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 0 8px rgba(0,0,0,0.1); }
     .form-row { display: flex; flex-wrap: wrap; gap: 10px; }
     select, input, button { padding: 8px; border-radius: 5px; border: 1px solid #ccc; }
@@ -17,6 +17,19 @@
     th, td { border: 1px solid #ddd; text-align: center; padding: 6px; }
     th { background: #ffc107; }
     #totalSemua { font-weight: bold; margin-top: 10px; }
+    .link-ke-halaman2 { margin-top: 20px; text-align: right; }
+    .link-ke-halaman2 button {
+      padding: 10px 20px;
+      font-size: 14px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .link-ke-halaman2 button:hover {
+      background: #218838;
+    }
   </style>
 </head>
 <body>
@@ -26,16 +39,16 @@
 <div class="form-section">
   <div class="form-row">
     <select id="hari"><option value="">Hari</option><option>Senin</option><option>Selasa</option><option>Rabu</option><option>Kamis</option><option>Jumat</option><option>Sabtu</option><option>Minggu</option></select>
-    <select id="telurAyam"><option value="">Telur Ayam</option><option>0.5</option><option>1</option><option>1.5</option><option>2</option><option>2.5</option><option>3</option></select>
-    <select id="telurPuyuh"><option value="">Telur Puyuh</option><option>0.5</option><option>1</option><option>1.5</option><option>2</option><option>2.5</option><option>3</option></select>
-    <select id="tepungAci"><option value="">Tepung Aci</option><option>0.5</option><option>1</option><option>1.5</option><option>2</option><option>2.5</option><option>3</option></select>
-    <select id="balado"><option value="">Balado</option><option>1</option><option>2</option><option>3</option><option>4</option></select>
-    <select id="jagung"><option value="">Jagung</option><option>1</option><option>2</option><option>3</option><option>4</option></select>
-    <select id="margarin"><option value="">Margarin</option><option>1</option><option>2</option><option>3</option><option>4</option></select>
-    <select id="tusuk"><option value="">Tusuk Sate</option><option>1</option><option>2</option><option>3</option><option>4</option></select>
-    <select id="plastik"><option value="">Plastik</option><option>1</option><option>2</option><option>3</option><option>4</option></select>
-    <select id="bensin"><option value="">Bensin (L)</option><option>0.5</option><option>1</option><option>1.5</option><option>2</option><option>2.5</option><option>3</option></select>
-    <select id="gas"><option value="">Gas</option><option>1</option><option>2</option><option>3</option><option>4</option></select>
+    <select id="telurAyam"><option value="">Telur Ayam</option><option>0</option><option>0.5</option><option>1</option><option>1.5</option><option>2</option><option>2.5</option><option>3</option></select>
+    <select id="telurPuyuh"><option value="">Telur Puyuh</option><option>0</option><option>0.5</option><option>1</option><option>1.5</option><option>2</option><option>2.5</option><option>3</option></select>
+    <select id="tepungAci"><option value="">Tepung Aci</option><option>0</option><option>0.5</option><option>1</option><option>1.5</option><option>2</option><option>2.5</option><option>3</option></select>
+    <select id="balado"><option value="">Balado</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select>
+    <select id="jagung"><option value="">Jagung</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select>
+    <select id="margarin"><option value="">Margarin</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select>
+    <select id="tusuk"><option value="">Tusuk Sate</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select>
+    <select id="plastik"><option value="">Plastik</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select>
+    <select id="bensin"><option value="">Bensin (L)</option><option>0</option><option>0.5</option><option>1</option><option>1.5</option><option>2</option><option>2.5</option><option>3</option></select>
+    <select id="gas"><option value="">Gas</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select>
     <input type="number" id="omset" placeholder="Omset (Rp)">
     <button onclick="submitData()">Tambah</button>
   </div>
@@ -55,6 +68,12 @@
   </thead>
   <tbody></tbody>
 </table>
+
+<div class="link-ke-halaman2">
+  <a href="bahan-total.html" target="_blank">
+    <button>Lihat Total Penggunaan Bahan</button>
+  </a>
+</div>
 
 <h2>Keuangan</h2>
 <table id="keuanganTable">
