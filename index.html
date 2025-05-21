@@ -48,6 +48,8 @@
     <select id="tusuk"><option value="">Tusuk Sate</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select>
     <select id="plastik"><option value="">Plastik</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select>
     <select id="bensin"><option value="">Bensin (L)</option><option>0</option><option>0.5</option><option>1</option><option>1.5</option><option>2</option><option>2.5</option><option>3</option></select>
+ <select id="abon"><option value="">Abon</option><option>0</option><option>0.5</option><option>1</option><option>1.5</option><option>2</option></select>
+  <button onclick="submitData()">Simpan</button>
     <select id="gas"><option value="">Gas</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select>
     <input type="number" id="omset" placeholder="Omset (Rp)">
     <button onclick="submitData()">Tambah</button>
@@ -64,7 +66,7 @@
 <h2>Rincian Bahan</h2>
 <table id="bahanTable">
   <thead>
-    <tr><th>No</th><th>Hari</th><th>Telur Ayam</th><th>Telur Puyuh</th><th>Tepung Aci</th><th>Balado</th><th>Jagung</th><th>Margarin</th><th>Tusuk</th><th>Plastik</th><th>Bensin</th><th>Gas</th><th>Modal</th><th>Hapus</th></tr>
+    <tr><th>No</th><th>Hari</th><th>Telur Ayam</th><th>Telur Puyuh</th><th>Tepung Aci</th><th>Abon</th><th>Balado</th><th>Jagung</th><th>Margarin</th><th>Tusuk</th><th>Plastik</th><th>Bensin</th><th>Gas</th><th>Modal</th><th>Hapus</th></tr>
   </thead>
   <tbody></tbody>
 </table>
@@ -85,10 +87,12 @@
 
 <div id="totalSemua">Total Modal: Rp 0</div>
 
+<!-- Perbaikan hanya di bagian JS saja -->
+
 <script>
 const HARGA = {
   telurAyam: 30000, telurPuyuh: 38000, tepungAci: 11000, balado: 5000,
-  jagung: 5000, margarin: 6000, tusuk: 12000, plastik: 7000, bensin: 12000, gas: 22000
+  jagung: 5000, margarin: 6000, tusuk: 12000, plastik: 7000, bensin: 12000, gas: 22000, abon: 20000
 };
 
 function hitungTotal(data) {
@@ -102,11 +106,12 @@ function hitungTotal(data) {
     (parseFloat(data.tusuk) || 0) * HARGA.tusuk +
     (parseFloat(data.plastik) || 0) * HARGA.plastik +
     (parseFloat(data.bensin) || 0) * HARGA.bensin +
-    (parseFloat(data.gas) || 0) * HARGA.gas
+    (parseFloat(data.gas) || 0) * HARGA.gas +
+    (parseFloat(data.abon) || 0) * HARGA.abon
   );
 }
 
-function submitData() {
+function submitData(editIndex = null) {
   const data = {
     hari: document.getElementById("hari").value,
     telurAyam: document.getElementById("telurAyam").value,
@@ -119,6 +124,7 @@ function submitData() {
     plastik: document.getElementById("plastik").value,
     bensin: document.getElementById("bensin").value,
     gas: document.getElementById("gas").value,
+    abon: document.getElementById("abon").value,
     omset: parseInt(document.getElementById("omset").value)
   };
   if (!data.hari || isNaN(data.omset)) return alert("Isi Hari dan Omset!");
@@ -126,90 +132,106 @@ function submitData() {
   const total = hitungTotal(data);
   const bahanBody = document.querySelector("#bahanTable tbody");
   const keuanganBody = document.querySelector("#keuanganTable tbody");
-
   const status = data.omset > total ? "Untung" : data.omset < total ? "Rugi" : "Impas";
 
-  bahanBody.insertRow().innerHTML = `
-    <td>${bahanBody.rows.length + 1}</td><td>${data.hari}</td><td>${data.telurAyam}</td><td>${data.telurPuyuh}</td>
-    <td>${data.tepungAci}</td><td>${data.balado}</td><td>${data.jagung}</td><td>${data.margarin}</td><td>${data.tusuk}</td>
-    <td>${data.plastik}</td><td>${data.bensin}</td><td>${data.gas}</td><td>Rp ${total.toLocaleString()}</td>
-    <td><button onclick="hapusBaris(this)">Hapus</button></td>`;
-
-  keuanganBody.insertRow().innerHTML = `
-    <td>${keuanganBody.rows.length + 1}</td>
-    <td>Rp ${data.omset.toLocaleString()}</td>
-    <td>Rp ${total.toLocaleString()}</td>
-    <td>Rp ${(data.omset - total).toLocaleString()}</td>
-    <td>${status}</td>`;
+  if (editIndex !== null) {
+    bahanBody.rows[editIndex].innerHTML = generateBahanRow(editIndex + 1, data, total);
+    keuanganBody.rows[editIndex].innerHTML = generateKeuanganRow(editIndex + 1, data, total, status);
+  } else {
+    const i = bahanBody.rows.length;
+    bahanBody.insertRow().innerHTML = generateBahanRow(i + 1, data, total);
+    keuanganBody.insertRow().innerHTML = generateKeuanganRow(i + 1, data, total, status);
+  }
 
   document.querySelectorAll("select").forEach(e => e.value = "");
   document.getElementById("omset").value = "";
   updateTotalModal();
 }
 
+function generateBahanRow(no, data, total) {
+  return `
+    <td>${no}</td>
+    <td>${data.hari}</td>
+    <td>${data.telurAyam}</td>
+    <td>${data.telurPuyuh}</td>
+    <td>${data.tepungAci}</td>
+    <td>${data.abon}</td>
+    <td>${data.balado}</td>
+    <td>${data.jagung}</td>
+    <td>${data.margarin}</td>
+    <td>${data.tusuk}</td>
+    <td>${data.plastik}</td>
+    <td>${data.bensin}</td>
+    <td>${data.gas}</td>
+    <td>Rp ${total.toLocaleString()}</td>
+    <td>
+      <button onclick="editBaris(this)">Edit</button>
+      <button onclick="hapusBaris(this)">Hapus</button>
+    </td>`;
+}
+
+function generateKeuanganRow(no, data, total, status) {
+  return `
+    <td>${no}</td>
+    <td>Rp ${data.omset.toLocaleString()}</td>
+    <td>Rp ${total.toLocaleString()}</td>
+    <td>Rp ${(data.omset - total).toLocaleString()}</td>
+    <td>${status}</td>`;
+}
+
 function hapusBaris(btn) {
-  const idx = btn.parentElement.parentElement.rowIndex - 1;
-  document.querySelector("#bahanTable tbody").deleteRow(idx);
-  document.querySelector("#keuanganTable tbody").deleteRow(idx);
+  const row = btn.closest("tr");
+  const index = row.rowIndex - 1;
+  row.remove();
+  document.querySelector("#keuanganTable tbody").deleteRow(index);
+  updateNomor();
   updateTotalModal();
+}
+
+function editBaris(btn) {
+  const index = btn.closest("tr").rowIndex - 1;
+  const row = document.querySelector("#bahanTable tbody").rows[index];
+  const cells = row.cells;
+
+  document.getElementById("hari").value = cells[1].innerText;
+  document.getElementById("telurAyam").value = cells[2].innerText;
+  document.getElementById("telurPuyuh").value = cells[3].innerText;
+  document.getElementById("tepungAci").value = cells[4].innerText;
+  document.getElementById("abon").value = cells[5].innerText;
+  document.getElementById("balado").value = cells[6].innerText;
+  document.getElementById("jagung").value = cells[7].innerText;
+  document.getElementById("margarin").value = cells[8].innerText;
+  document.getElementById("tusuk").value = cells[9].innerText;
+  document.getElementById("plastik").value = cells[10].innerText;
+  document.getElementById("bensin").value = cells[11].innerText;
+  document.getElementById("gas").value = cells[12].innerText;
+  const omsetText = document.querySelector("#keuanganTable tbody").rows[index].cells[1].innerText;
+  document.getElementById("omset").value = parseInt(omsetText.replace(/[^\d]/g, ""));
+
+  // ubah fungsi tombol "Tambah" sementara jadi edit
+  const button = document.querySelector(".form-row button[onclick='submitData()']");
+  button.textContent = "Update";
+  button.onclick = () => {
+    submitData(index);
+    button.textContent = "Simpan";
+    button.setAttribute("onclick", "submitData()");
+  };
+}
+
+function updateNomor() {
+  document.querySelectorAll("#bahanTable tbody tr").forEach((tr, i) => tr.cells[0].innerText = i + 1);
+  document.querySelectorAll("#keuanganTable tbody tr").forEach((tr, i) => tr.cells[0].innerText = i + 1);
 }
 
 function updateTotalModal() {
   let total = 0;
-  document.querySelectorAll("#bahanTable tbody tr").forEach(row => {
-    total += parseInt(row.cells[12].innerText.replace(/[^\d]/g, "") || 0);
+  document.querySelectorAll("#bahanTable tbody tr").forEach(tr => {
+    const modalCell = tr.cells[13];
+    const angka = parseInt(modalCell.innerText.replace(/[^\d]/g, ""));
+    total += angka;
   });
   document.getElementById("totalSemua").innerText = "Total Modal: Rp " + total.toLocaleString();
 }
-
-function exportToExcel() {
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.table_to_sheet(document.getElementById("bahanTable")), "Bahan");
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.table_to_sheet(document.getElementById("keuanganTable")), "Keuangan");
-  XLSX.writeFile(wb, "DataPenjualan.xlsx");
-}
-
-function importFromExcel() {
-  const file = document.getElementById('importExcel').files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const wb = XLSX.read(e.target.result, { type: "binary" });
-    const data1 = XLSX.utils.sheet_to_json(wb.Sheets["Bahan"], { header: 1 }).slice(1);
-    const data2 = XLSX.utils.sheet_to_json(wb.Sheets["Keuangan"], { header: 1 }).slice(1);
-    clearData();
-    data1.forEach((row, i) => {
-      document.querySelector("#bahanTable tbody").insertRow().innerHTML =
-        `<td>${i+1}</td>${row.slice(1,13).map(val => `<td>${val}</td>`).join("")}<td><button onclick="hapusBaris(this)">Hapus</button></td>`;
-    });
-    data2.forEach((row, i) => {
-      document.querySelector("#keuanganTable tbody").insertRow().innerHTML =
-        `<td>${i+1}</td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td>${row[4]}</td>`;
-    });
-    updateTotalModal();
-  };
-  reader.readAsBinaryString(file);
-}
-
-function clearData() {
-  document.querySelector("#bahanTable tbody").innerHTML = "";
-  document.querySelector("#keuanganTable tbody").innerHTML = "";
-  updateTotalModal();
-}
-
-function saveToLocalStorage() {
-  const bahan = document.querySelector("#bahanTable tbody").innerHTML;
-  const keuangan = document.querySelector("#keuanganTable tbody").innerHTML;
-  localStorage.setItem("bahanData", bahan);
-  localStorage.setItem("keuanganData", keuangan);
-  alert("Data berhasil disimpan.");
-}
-
-window.onload = () => {
-  document.querySelector("#bahanTable tbody").innerHTML = localStorage.getItem("bahanData") || "";
-  document.querySelector("#keuanganTable tbody").innerHTML = localStorage.getItem("keuanganData") || "";
-  updateTotalModal();
-};
 </script>
 
 </body>
